@@ -1,7 +1,8 @@
 package service;
 
-import com.sun.jna.Callback;
 import com.sun.jna.Library;
+
+import javax.security.auth.callback.Callback;
 
 /**
  * @ProjectName: socket
@@ -27,4 +28,7 @@ public interface LgetLib extends Library {
      */
     int JLRCs(String cid, String fdid, String tdid, byte[] reqid, int len,
               int declevel, MyCallback treadCard, int loglvel);
+    interface MyCallback extends Callback {
+            String readCard(String fid,String tidid, String resp);
+    }
 }

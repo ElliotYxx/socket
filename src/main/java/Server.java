@@ -1,9 +1,7 @@
 import com.sun.jna.Native;
-import com.sun.xml.internal.ws.api.model.wsdl.WSDLOutput;
 import constant.Constants;
 import entity.TerReq;
 import service.LgetLib;
-import service.MyCallback;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -18,6 +16,7 @@ public class Server extends Thread{
     ServerSocket server = null;
     Socket socket = null;
     TerReq terReq = null;
+    byte[] reqID = new byte[35];
 
 
     public Server(int port){
@@ -34,9 +33,7 @@ public class Server extends Thread{
         super.run();
         InputStream is = null;
         ObjectInputStream ios = null;
-        MyCallback  readCallback = null;
-        LgetLib INSTANCE = null;
-        byte[] reqID = new byte[35];
+
         try{
             System.out.println("等待客户端连接...");
             socket = server.accept();
@@ -49,25 +46,28 @@ public class Server extends Thread{
             if (Constants.DECODE_CMD.equals(terReq.getTrans_code())){
                 System.out.println("收到解码请求...");
                 System.out.println("注册回调函数...");
-                INSTANCE = (LgetLib) Native.loadLibrary("eid", LgetLib.class);
+                LgetLib INSTANCE = (LgetLib) Native.loadLibrary("eid", LgetLib.class);
                 System.out.println("so库注册成功...");
-                readCallback = new MyCallback() {
+                LgetLib.MyCallback readCallback = new LgetLib.MyCallback() {
                     public String readCard(String fid, String tidid, String resp) {
                         //发送读卡命令
-                        Thread readCardThread = new SendReadThread(resp);
-                        readCardThread.start();
-                        return null;
+                        //Thread readCardThread = new SendReadThread(resp);
+                        //readCardThread.start();
+                        System.out.println(resp);
+                        return "2132135fGCV";
                     }
                 };
+                int result = INSTANCE.JLRCs("1235678",
+                        "abacadae", "98541BDA41CA",
+                        reqID, 0x3D, 2, readCallback, 3);
             }
+
         }catch (Exception e){
             e.printStackTrace();
         }
-        int result = INSTANCE.JLRCs("1235678",
-                "abacadae", "98541BDA41CA",
-                reqID, 0x3D, 2, readCallback, 3);
+
         //发送结果信息给门锁系统
-        Thread sendResultThread = new SendResultThread(result);
+        //Thread sendResultThread = new SendResultThread(result);
     }
 
     class SendResultThread extends Thread{
