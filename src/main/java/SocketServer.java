@@ -1,12 +1,12 @@
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import service.JLRC;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Scanner;
 
 /**
  * @ProjectName: socket
@@ -20,54 +20,49 @@ import java.util.Scanner;
 public class SocketServer extends Thread{
     ServerSocket server = null;
     Socket socket = null;
-    Info info=null;
+    Info info = null;
 
     public SocketServer(int port) {
         try {
             server = new ServerSocket(port);
+            server.setSoTimeout(5000);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public interface JLRC extends Library {
-        int getInfo(byte[]cid ,byte[]app_id, byte[]appkey, byte[] reqID, byte[] biz_sequence_id,
-                    byte[] info,byte[] picture, byte[] dn, byte[] appeidcode, byte[] errMsg,int decodeLevel ,byte[] ip)
-                ;
-    }
 
     @Override
     public void run() {
 
         super.run();
+        InputStream is = null;
+        ObjectInputStream ois = null;
         try {
             System.out.println(getdate() + "  等待客户端连接...");
             socket = server.accept();
-           /* new sendMessThread().start();// 连接并返回socket后，再启用发送消息线程*/
             System.out.println(getdate() + "  客户端 （" + socket.getInetAddress().getHostAddress() + "） 连接成功...");
-            InputStream in = socket.getInputStream();
-            ObjectInputStream ois=new ObjectInputStream(in);
-            /*int len = 0;
-            byte[] buf = new byte[1024];
-            while ((len = in.read(buf)) != -1) {
-                System.out.println(getdate() + "  客户端: （"
-                        + socket.getInetAddress().getHostAddress() + "）说："
-                        + new String(buf, 0, len, "UTF-8"));
-            }*/
-            /*System.out.println("客户端对象"+((Info)ois.readObject()).getApp_id());*/
-             info=(Info)ois.readObject();
+            is = socket.getInputStream();
+            ois = new ObjectInputStream(is);
+
+             info = (Info)ois.readObject();
+             System.out.println(info.getReqID());
             JLRC lib = (JLRC) Native.loadLibrary("query_V2.1.1", JLRC.class);
 // 由动态库执行 CallbackAdd 回调函数
-            int ret = lib. getInfo(info.getCid().getBytes(),info.getApp_id().getBytes(), info.getAppkey().getBytes(),info.getReqID().getBytes(),"jWEeQkfogZSJvrS2iDZ".getBytes(),info.getInfo().getBytes(),info.getPicture().getBytes(),info.getDn().getBytes(),info.getAppeidcode().getBytes(), info.getErrMsg().getBytes(),2,info.getIp().getBytes());
+            int ret = lib. getInfo(info.getCid().getBytes(),info.getApp_id().getBytes(), info.getAppkey().getBytes(),"1190807C1917A093238363531363FABF".getBytes(),"jWEeQkfogZSJvrS2iDZ".getBytes(),info.getInfo().getBytes(),info.getPicture().getBytes(),info.getDn().getBytes(),info.getAppeidcode().getBytes(), info.getErrMsg().getBytes(),2,info.getIp().getBytes());
             System.out.println("返回的结果: "+ret);
 
-           /* OutputStream os=socket.getOutputStream();
-            ObjectOutputStream oos=new ObjectOutputStream(os);
-            oos.writeObject(new Info(info.getErrMsg(),info.getDn(),info.getAppeidcode(),info.getInfo()));*/
             new sendMessThread().start();// 连接并返回socket后，再启用发送消息线程
         } catch (Exception e) {
             e.printStackTrace();
         }
+      /*  try {
+            is.close();
+            ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
     }
 
     public static String getdate() {
@@ -81,31 +76,23 @@ public class SocketServer extends Thread{
         @Override
         public void run() {
             super.run();
-           /* Scanner scanner = null;*/
-            OutputStream out = null;
-            ObjectOutputStream oos=null;
+            OutputStream os = null;
+            ObjectOutputStream oos = null;
             try {
                 if (socket != null) {
-                   /* scanner = new Scanner(System.in);*/
-                    out = socket.getOutputStream();
-                    oos=new ObjectOutputStream(out);
+                    os = socket.getOutputStream();
+                    oos = new ObjectOutputStream(os);
                     oos.writeObject(new Info(info.getErrMsg(),info.getDn(),info.getAppeidcode(),info.getInfo()));
-                   /* String in = "";*/
-                   /* do {
-                        in = scanner.next();
-                        out.write(("" + in).getBytes("UTF-8"));
-                        out.flush();// 清空缓存区的内容
-                    } while (!in.equals("q"));
-                    scanner.close();*/
-                    /*try {
-                        out.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+          /*  try {
+                os.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }*/
 
         }
 

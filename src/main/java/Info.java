@@ -11,16 +11,16 @@ import java.io.Serializable;
  */
 public class Info implements Serializable {
     private static final long serialVersionUID=1L;
-    public String cid;
-    public String app_id;
-    public String appkey;
-    public String errMsg;
-    public String dn;
-    public String reqID;
-    public String appeidcode;
-    public String info;
-    public String picture;
-    public String ip;
+    private String cid;
+    private String app_id;
+    private String appkey;
+    private String errMsg;
+    private String dn;
+    private String reqID;
+    private String appeidcode;
+    private String info;
+    private String picture;
+    private String ip;
 
     public Info(String cid, String app_id, String appkey, String errMsg, String dn, String reqID, String appeidcode, String info, String picture, String ip) {
         this.cid = cid;
