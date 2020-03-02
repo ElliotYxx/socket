@@ -48,18 +48,18 @@ public class Server extends Thread{
                 System.out.println("注册回调函数...");
                 LgetLib INSTANCE = (LgetLib) Native.loadLibrary("eid", LgetLib.class);
                 System.out.println("so库注册成功...");
+                new SendReadThread("213213124").start();
                 LgetLib.MyCallback readCallback = new LgetLib.MyCallback() {
                     public String readCard(String fid, String tidid, String resp) {
                         //发送读卡命令
-                        //Thread readCardThread = new SendReadThread(resp);
-                        //readCardThread.start();
+
                         System.out.println(resp);
                         return "2132135fGCV";
                     }
                 };
-                int result = INSTANCE.JLRCs("1235678",
-                        "abacadae", "98541BDA41CA",
-                        reqID, 0x3D, 2, readCallback, 3);
+//                int result = INSTANCE.JLRCs("1235678",
+//                        "abacadae", "98541BDA41CA",
+//                        reqID, 0x3D, 2, readCallback, 3);
             }
 
         }catch (Exception e){
@@ -85,6 +85,7 @@ public class Server extends Thread{
                 dos = new DataOutputStream(os);
                 dos.writeInt(result);
                 dos.flush();
+                dos.close();
             }catch (IOException e){
                 e.printStackTrace();
             }

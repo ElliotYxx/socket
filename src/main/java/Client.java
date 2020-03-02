@@ -1,6 +1,5 @@
 import constant.Constants;
 import entity.TerReq;
-import service.LgetLib;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +16,6 @@ import java.net.UnknownHostException;
 public class Client extends Thread{
 
     Socket socket = null;
-    byte[] reqID = new byte[35];
 
     public Client(String host, int port){
         try{
@@ -31,7 +29,11 @@ public class Client extends Thread{
 
     @Override
     public void run() {
-        new SendDecodeReqThread().start();
+        TerReq decodeReq = new TerReq();
+        decodeReq.setTrans_code("01");
+        decodeReq.setDevsn("Q500000001");
+        Thread sendDecodeReq = new SendTerReqThread(decodeReq);
+        sendDecodeReq.start();
         super.run();
         try{
             //接受开锁服务端的读卡命令
@@ -40,16 +42,29 @@ public class Client extends Thread{
             int len = in.read(buf);
             String resp = new String(buf, 0, len);
             System.out.println("接受到的resp： " + resp);
-
-//            int num = Server.INSTANCE.JLRCs("1235678", "abacadae", "98541BDA41CA",
-//                    reqID, 0x3D, 2, readCard, 3);
+            TerReq cardResult = new TerReq();
+            //设置返回结果
+            cardResult.setTrans_code("03");
+            if ("80B0000020".equals(resp)){
+                cardResult.setComm_data("00014845010807100000000000067777EED1E76E59EB123456420F9A520B8C269000");
+                cardResult.setErrcode("0");
+            }else{
+                cardResult.setComm_data("9000");
+                cardResult.setErrcode("-43002");
+            }
+            Thread sendResultThread = new SendTerReqThread(cardResult);
+            sendResultThread.start();
 
         }catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    class SendDecodeReqThread extends Thread{
+    class SendTerReqThread extends Thread{
+        private TerReq terReq;
+        SendTerReqThread(TerReq terReq){
+            this.terReq = terReq;
+        }
         @Override
         public void run() {
             super.run();

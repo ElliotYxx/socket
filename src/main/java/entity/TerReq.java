@@ -38,6 +38,8 @@ public class TerReq implements Serializable {
      */
     private String errmsg;
 
+    public TerReq(){}
+
     public TerReq(String trans_code, String devsn, String comm_data, String errcode, String errmsg) {
         this.trans_code = trans_code;
         this.devsn = devsn;
