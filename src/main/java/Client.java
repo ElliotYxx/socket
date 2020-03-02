@@ -73,7 +73,7 @@ public class Client extends Thread{
             try{
                 os = socket.getOutputStream();
                 oos = new ObjectOutputStream(os);
-                oos.writeObject(new TerReq(Constants.DECODE_CMD, "Q500000001", null, "0", null));
+                oos.writeObject(terReq);
                 oos.writeObject(null);
                 oos.flush();
             }catch (Exception e){
